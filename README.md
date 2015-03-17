@@ -25,7 +25,7 @@ app.get('/admin/', greatAdminPanel);
 app.get('/api/', apiHandler);
 
 if (process.env.NODE_ENV !== 'production') {
-  app.use('/api-docs/', ramlStore(path.join(__dirname, 'raml-dir/')));
+  app.use('/api-docs/', ramlStore(path.join(__dirname, 'raml-dir/'), 'api-docs/'));
 }
 
 // continue until...
@@ -41,7 +41,7 @@ var path = require('path');
 var app = require('express');
 var ramlStore = require('express-raml-store');
 
-app.use('/raml-store', ramlStore(path.join(__dirname, 'raml-dir/')));
+app.use('/raml-store/', ramlStore(path.join(__dirname, 'raml-dir/'), 'raml-store/'));
 app.listen(3000);
 ```
 

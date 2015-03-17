@@ -2,12 +2,20 @@ var express = require('express');
 var debug = require('debug')('raml-store');
 
 var path = require('path');
-
-// creates dist-override/index.html
 var fs = require('fs');
-var indexFile = fs.readFileSync(path.join(__dirname, 'node_modules/api-designer/dist/index.html'), 'utf8');
-indexFile = indexFile.replace(/<\/body\>/g, '<script src="angular-persistence.js"></script></body>');
-fs.writeFileSync(path.join(__dirname, 'dist-override/index.html'), indexFile, 'utf8');
+var pp = require('preprocess');
+
+function processStatic(mountPath) {
+    // creates dist-override/index.html
+    var indexFile = fs.readFileSync(path.join(__dirname, 'node_modules/api-designer/dist/index.html'), 'utf8');
+    indexFile = indexFile.replace(/(href="|src=")(.*")/g, '$1' + mountPath + '$2');  
+    indexFile = indexFile.replace(/<\/body\>/g, '<script src="angular-persistence.js"></script></body>');
+    fs.writeFileSync(path.join(__dirname, 'dist-override/index.html'), indexFile, 'utf8');
+
+    //process angular-persistance.js
+    var context = {res: mountPath};
+    pp.preprocessFileSync(path.join(__dirname, 'dist-override/angular-persistence.js'), path.join(__dirname, '.tmp/dist-override/angular-persistence.js'), context);
+}
 
 function serveStatic (req, res, next) {
   if (req.url === '/index.html' || req.url === '/') {
@@ -25,11 +33,14 @@ function serveStatic (req, res, next) {
 }
 
 var ramlServe;
-module.exports = ramlServe = function (ramlPath) {
+module.exports = ramlServe = function (ramlPath, mountPath) {
   var router = express.Router();
   var bodyParser = require('body-parser');
-
   var api = require('./api')(ramlPath);
+
+  mountPath = mountPath ? (mountPath.match(/\/$/) ? mountPath : mountPath + '/') : '';
+  processStatic(mountPath);
+
   router.use(bodyParser.json());
   router.get('/files/*', api.get);
   router.post('/files/*', api.post);
