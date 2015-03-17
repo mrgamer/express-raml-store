@@ -14,8 +14,11 @@ function processStatic(mountPath) {
 
     //process angular-persistance.js
     var context = {res: mountPath};
-    fs.mkdirSync(path.join(__dirname, 'dist-override/.tmp')); // may throw
-    pp.preprocessFileSync(path.join(__dirname, 'dist-override/angular-persistence.js'), path.join(__dirname, 'dist-override/.tmp/angular-persistence.js'), context);
+    var tmpPath = path.join(__dirname, 'dist-verride/.tmp');
+    if (!fs.existsSync(tmpPath)) {
+        fs.mkdirSync(tmpPath); // may throw
+    }
+    pp.preprocessFileSync(path.join(__dirname, 'dist-override/angular-persistence.js'), path.join(tmpPath, 'angular-persistence.js'), context);
 }
 
 function serveStatic (req, res, next) {
