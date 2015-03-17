@@ -2,19 +2,31 @@ var express = require('express');
 var debug = require('debug')('raml-store');
 
 var path = require('path');
-
-// creates dist-override/index.html
 var fs = require('fs');
-var indexFile = fs.readFileSync(path.join(__dirname, 'node_modules/api-designer/dist/index.html'), 'utf8');
-indexFile = indexFile.replace(/<\/body\>/g, '<script src="angular-persistence.js"></script></body>');
-fs.writeFileSync(path.join(__dirname, 'dist-override/index.html'), indexFile, 'utf8');
+var pp = require('preprocess');
+
+function processStatic(mountPath) {
+    // creates dist-override/index.html
+    var indexFile = fs.readFileSync(path.join(__dirname, 'node_modules/api-designer/dist/index.html'), 'utf8');
+    indexFile = indexFile.replace(/(href="|src=")(.*")/g, '$1' + mountPath + '$2');  
+    indexFile = indexFile.replace(/<\/body\>/g, '<script src="' + mountPath + 'angular-persistence.js"></script></body>');
+    fs.writeFileSync(path.join(__dirname, 'dist-override/index.html'), indexFile, 'utf8');
+
+    //process angular-persistance.js
+    var context = {res: mountPath};
+    var tmpPath = path.join(__dirname, 'dist-override/.tmp');
+    if (!fs.existsSync(tmpPath)) {
+        fs.mkdirSync(tmpPath); // may throw
+    }
+    pp.preprocessFileSync(path.join(__dirname, 'dist-override/angular-persistence.js'), path.join(tmpPath, 'angular-persistence.js'), context);
+}
 
 function serveStatic (req, res, next) {
   if (req.url === '/index.html' || req.url === '/') {
     return res.sendFile('/index.html', { root: path.join(__dirname, 'dist-override') });
   }
   if (req.url === '/angular-persistence.js') {
-    return res.sendFile('/angular-persistence.js', { root: path.join(__dirname, 'dist-override') });
+    return res.sendFile('/angular-persistence.js', { root: path.join(__dirname, 'dist-override/.tmp') });
   }
   var requestedFile = req.url.replace(/\?.*/, '');
   debug('requested:', requestedFile);
@@ -25,11 +37,14 @@ function serveStatic (req, res, next) {
 }
 
 var ramlServe;
-module.exports = ramlServe = function (ramlPath) {
+module.exports = ramlServe = function (ramlPath, mountPath) {
   var router = express.Router();
   var bodyParser = require('body-parser');
-
   var api = require('./api')(ramlPath);
+
+  mountPath = mountPath ? (mountPath.match(/\/$/) ? mountPath : mountPath + '/') : '';
+  processStatic(mountPath);
+
   router.use(bodyParser.json());
   router.get('/files/*', api.get);
   router.post('/files/*', api.post);
