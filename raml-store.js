@@ -14,7 +14,8 @@ function processStatic(mountPath) {
 
     //process angular-persistance.js
     var context = {res: mountPath};
-    pp.preprocessFileSync(path.join(__dirname, 'dist-override/angular-persistence.js'), path.join(__dirname, '.tmp/dist-override/angular-persistence.js'), context);
+    fs.mkdirSync(path.join(__dirname, 'dist-override/.tmp')); // may throw
+    pp.preprocessFileSync(path.join(__dirname, 'dist-override/angular-persistence.js'), path.join(__dirname, 'dist-override/.tmp/angular-persistence.js'), context);
 }
 
 function serveStatic (req, res, next) {
@@ -22,7 +23,7 @@ function serveStatic (req, res, next) {
     return res.sendFile('/index.html', { root: path.join(__dirname, 'dist-override') });
   }
   if (req.url === '/angular-persistence.js') {
-    return res.sendFile('/angular-persistence.js', { root: path.join(__dirname, 'dist-override') });
+    return res.sendFile('/angular-persistence.js', { root: path.join(__dirname, 'dist-override/.tmp') });
   }
   var requestedFile = req.url.replace(/\?.*/, '');
   debug('requested:', requestedFile);
