@@ -14,7 +14,7 @@ function processStatic(mountPath) {
 
     //process angular-persistance.js
     var context = {res: mountPath};
-    var tmpPath = path.join(__dirname, 'dist-verride/.tmp');
+    var tmpPath = path.join(__dirname, 'dist-override/.tmp');
     if (!fs.existsSync(tmpPath)) {
         fs.mkdirSync(tmpPath); // may throw
     }
