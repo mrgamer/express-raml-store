@@ -9,7 +9,7 @@ function processStatic(mountPath) {
     // creates dist-override/index.html
     var indexFile = fs.readFileSync(path.join(__dirname, 'node_modules/api-designer/dist/index.html'), 'utf8');
     indexFile = indexFile.replace(/(href="|src=")(.*")/g, '$1' + mountPath + '$2');  
-    indexFile = indexFile.replace(/<\/body\>/g, '<script src="angular-persistence.js"></script></body>');
+    indexFile = indexFile.replace(/<\/body\>/g, '<script src="' + mountPath + 'angular-persistence.js"></script></body>');
     fs.writeFileSync(path.join(__dirname, 'dist-override/index.html'), indexFile, 'utf8');
 
     //process angular-persistance.js
