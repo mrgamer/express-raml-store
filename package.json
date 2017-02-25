@@ -33,7 +33,7 @@
     "router"
   ],
   "dependencies": {
-    "api-designer": "^0.0.6",
+    "api-designer": "^0.3.2",
     "bluebird": "^2.9.32",
     "body-parser": "^1.13.2",
     "debug": "^2.2.0",
